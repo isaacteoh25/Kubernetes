@@ -1,0 +1,134 @@
+Let's extend the pipeline with a new stage that does some preparation work, such as creating the folder and the car.txt file.
+
+== DO ==
+
+Add a new stage called prep. Make sure this is the first stage that is being executed.
+
+
+
+== OBSERVE ==
+
+Notice how your pipeline looks like. The stage prep will not be displayed as there are no jobs associated.
+
+
+
+== QUESTION ==
+
+How does your .gitlab-ci.yml look like?
+
+stages:
+    - prep
+    - build
+    - test
+== DO ==
+
+Add a new job called "prepare the car".
+
+Add the following scripts:
+
+    - mkdir build
+
+    - cd build
+
+    - touch car.txt
+
+Remove the command mkdir / touch from the "build the car" job.
+
+== QUESTION ==
+
+How does your .gitlab-ci.yml look like?
+
+stages:
+    - prep
+    - build
+    - test
+
+prepare the car:
+  stage: prep
+  script:
+    - mkdir build
+    - cd build
+    - touch car.txt
+
+build the car:
+  stage: build
+  script:
+    - cd build
+    - echo "Chassis" >> car.txt
+    - echo "Engine" >> car.txt
+    - echo "Wheels" >> car.txt
+  artifacts:
+    paths: 
+      - build/
+
+test the car:
+  stage: test
+  script:
+    - ls
+    - test -f build/car.txt
+    - cd build
+    - grep "Chassis" car.txt
+    - grep "Engine" car.txt
+    - grep "Wheels" car.txt
+== OBSERVE ==
+
+Your pipeline should now fail. The job "build the car"  should fail with the following error:
+
+cd: build: No such file or directory
+
+ERROR: Job failed: exit code 1
+
+
+
+== QUESTION ==
+
+What do you need to do to fix the pipeline?
+
+There is no artifact being passed to the build job.
+
+This can be fixed by adding artifacts to the "prepare the car" job.
+
+prepare the car:
+  stage: prep
+  script:
+    - mkdir build
+    - cd build
+    - touch car.txt
+  artifacts:
+    paths: 
+      - build/ 
+Let's create during the build process a file with your name, to indicate who has created the file.
+
+== DO ==
+
+Create a new job called "author" and assign it to the build stage.
+
+In the script section add the following:
+
+   - mkdir meta
+
+   - cd meta
+
+   - echo $GITLAB_USER_NAME > author.txt
+
+Make sure this job saves the meta/author.txt file as an artifact.
+
+== OBSERVE ==
+
+1. Look at the pipeline. You should notice that the author and the build the car jobs will be executed in parallel. This is because you have assigned two jobs to the same stage.
+
+2. Look at the artifacts inside the meta folder. You should find your name inside the file author.txt
+
+== QUESTION ==
+
+How does your .gitlab-ci.yml look like?
+
+author:
+  stage: build
+  script:
+   - mkdir meta
+   - cd meta
+   - echo $GITLAB_USER_NAME > author.txt
+  artifacts:
+    paths: 
+      - meta/ 

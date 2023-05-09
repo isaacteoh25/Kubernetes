@@ -1,0 +1,196 @@
+== QUESTION ==
+
+Which jobs do not use project npm dependencies and have no need for the cache?
+
+The following jobs do not use the project npm dependencies and have not need for the cache:
+
+test artifact, deploy to surge, test deployment
+== LEARN ==
+
+Gitlab offers the possibility of disabling the cache for the jobs that do not need it.
+
+This can be done by using the configuration  cache: {} inside the jobs that you don't want to use cache.
+
+== OBSERVE ==
+
+Write down the current total time for running the pipeline.
+
+== DO ==
+
+Disable the usage of cache for the jobs that do not need it.
+
+== QUESTION ==
+
+What was your before and after total time for running the pipeline?
+
+The respective jobs should not longer have a reference to using the cache (downloading or uploading).
+
+You should notice an improvement of around 1 minute by using this setting.
+
+A typical job with the cache disabled will now look like: 
+
+test deployment:
+  image: alpine
+  cache: {}
+  stage: deployment tests
+  script:
+    - apk add --no-cache curl
+== LEARN ==
+
+The default cache behaviour in Gitlab CI is to download the files at the start of the job execution (pull), and to re-upload them at the end (push). This allows any changes made by the job to be persisted for future runs (known as the pull-push cache policy).
+
+Gitlab offers the possibility of defining how a job should work with cache by setting a policy. So if we want to skip uploading cache file, we can use the setting in the cache configuration
+
+policy: pull
+
+== OBSERVE ==
+
+While downloading the cache (pull) saves us time, we still have a few jobs that do redundant work: updating the cache after each run (push). This still does cost us time and we really do not need this behaviour, as the cache remains the same. The chance of a npm dependency changing during the execution of the pipeline is very small.
+
+== DO ==
+
+Amend the global cache configuration by specifying the pull policy.
+
+== QUESTION ==
+
+What was your before and after total time for running the pipeline?
+
+This time, you may not notice a huge difference, only about 10 seconds. If the job take longer check your configuration again and restart the pipeline. Some fluctuation can occur.
+
+You should no longer see in the jobs that use cache a reference to uploading the cache.
+
+The global cache configuration should now look like this:
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+  policy: pull
+== OBSERVE ==
+
+Now we are no longer updating the cache. While this is not a problem right now (as we anyway run npm install which will always check for updates), on the long run it is faster to have an up-to-date cache.
+
+== LEARN ==
+
+In Gitlab CI it is possible to create jobs that are only executed when a specific condition is fulfilled. For example if we want to run a job only when the pipeline is triggered by a schedule, we can configure it with:
+
+only:
+
+    - schedules
+
+The same goes the other way around. If you don't want to run a job when the pipeline is triggered by a scheduled run, simply add to the respective jobs:
+
+except:
+
+    - schedules
+
+== DO ==
+
+Let's create a job that runs only once per day and updates the cache. The job will not need to download the caches (pull). It only needs to create new caches (push).
+
+For this do the following:
+
+- create a stage called "cache"
+
+- create a job called "update cache"
+
+- make sure the job does runs the command npm install (to install all dependencies)
+
+- add the following cache policy to the job: policy: push. Note that you will need to define the entire cache configuration (as you have done globally). You can not  override only the policy.
+
+- make sure the "update cache" job only runs when the pipeline is triggered by a schedule
+
+- make sure that all other jobs DO NOT RUN when the pipeline is triggered by a schedule
+
+- create a new scheduled pipeline run and make it run once per day
+
+- manually run the scheduled pipeline and inspect the pipeline (only one job should be displayed)
+
+- manually the pipeline (the "update cache" job should not appear in the pipeline)
+
+== QUESTION ==
+
+How does your .gitlab-ci.yml look like?
+
+The .gitlab-ci.yml should look like this:
+
+image: node:10
+
+stages:
+  - build
+  - test
+  - deploy
+  - deployment tests
+  - cache
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - node_modules/
+  policy: pull
+  
+update cache:
+  stage: cache
+  script:
+    - npm install
+  cache:
+      key: ${CI_COMMIT_REF_SLUG}
+      paths:
+        - node_modules/
+      policy: push
+  only:
+    - schedules
+
+build website:
+  stage: build
+  script:
+    - echo $CI_COMMIT_SHORT_SHA
+    - npm install
+    - npm install -g gatsby-cli
+    - gatsby build
+    - sed -i "s/%%VERSION%%/$CI_COMMIT_SHORT_SHA/" ./public/index.html
+  artifacts:
+    paths:
+      - ./public
+  except:
+   - schedules
+
+test artifact:
+  image: alpine
+  stage: test
+  cache: {}
+  script:
+    - grep -q "Gatsby" ./public/index.html
+  except:
+   - schedules    
+
+test website:
+  stage: test
+  script:
+    - npm install
+    - npm install -g gatsby-cli
+    - gatsby serve &
+    - sleep 3
+    - curl "http://localhost:9000" | tac | tac | grep -q "Gatsby"
+  except:
+   - schedules    
+
+deploy to surge: 
+  stage: deploy
+  cache: {}
+  script:
+    - npm install --global surge
+    - surge --project ./public --domain instazone.surge.sh
+  except:
+   - schedules    
+
+test deployment:
+  image: alpine
+  cache: {}
+  stage: deployment tests
+  script:
+    - apk add --no-cache curl
+    - curl -s "https://instazone.surge.sh" | grep -q "Hi people"
+    - curl -s "https://instazone.surge.sh" | grep -q "$CI_COMMIT_SHORT_SHA"
+  except:
+   - schedules  

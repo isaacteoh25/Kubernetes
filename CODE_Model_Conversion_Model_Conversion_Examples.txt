@@ -1,0 +1,89 @@
+# For Hierarchical Data Format (HDF) files, e.g. *.H5, *.HDF5
+> python ./convert_hdf_to_tfs_model.py --help
+
+	# No retagging of model input and output tensor names - SEM%5C3J_BVL_VE_R1
+	> python ./convert_hdf_to_tfs_model.py "./ModelsFromWlos07/checkpoints/BVL_VE^MEAS3_CD_SEM/SEM%5C3J_BVL_VE_R1.h5" "./DARS_ADC/TFS/SEM_3J_BVL_VE_RETINANET/" 1 retinanet
+
+
+	# Using the SavedModel format - https://www.tensorflow.org/guide/saved_model
+	#
+	# > saved_model_cli -h
+	#
+	# Note: with saved_model_cli, you can use the 'run' option to perform some tests against the resulting TensorFlow Serving protobuf file
+
+	# Check model metadata ('serving_default' signature) - SEM%5C3J_BVL_VE_R1
+	> saved_model_cli show --dir "./DARS_ADC/TFS/SEM_3J_BVL_VE_RETINANET/1/" --tag_set serve --signature_def serving_default
+
+	# With custom tags (making more intuitive) for model input and output tensor names (note: overwriting the previous model with no custom tags, by keeping the model version = 1) - SEM%5C3J_BVL_VE_R1
+	> python ./convert_hdf_to_tfs_model.py "./ModelsFromWlos07/checkpoints/BVL_VE^MEAS3_CD_SEM/SEM%5C3J_BVL_VE_R1.h5" "./DARS_ADC/TFS/SEM_3J_BVL_VE_RETINANET/" 1 retinanet -tag_in image -tag_out boxes scores labels
+
+	# Check model metadata ('serving_default' signature) - SEM%5C3J_BVL_VE_R1
+	> saved_model_cli show --dir "./DARS_ADC/TFS/SEM_3J_BVL_VE_RETINANET/1/" --tag_set serve --signature_def serving_default
+
+
+	# Further examples...
+
+	# With custom tags - FIB%5C3J_FSGB_VE_R4
+	> python ./convert_hdf_to_tfs_model.py "./ModelsFromWlos07/checkpoints/FSGB_VE^MEAS_FIB/FIB%5C3J_FSGB_VE_R4.h5" "./DARS_ADC/TFS/FIB_3J_FSGB_VE_RETINANET/" 4 retinanet -tag_in image -tag_out boxes scores labels
+
+	# Check model metadata ('serving_default' signature) - FIB%5C3J_FSGB_VE_R4
+	> saved_model_cli show --dir "./DARS_ADC/TFS/FIB_3J_FSGB_VE_RETINANET/4/" --tag_set serve --signature_def serving_default
+
+
+	# With custom tags - FIB%5CI6_FSGB_VE_R1
+	> python ./convert_hdf_to_tfs_model.py "./ModelsFromWlos07/checkpoints/FSGB_VE^MEAS_FIB/FIB%5CI6_FSGB_VE_R1.h5" "./DARS_ADC/TFS/FIB_I6_FSGB_VE_RETINANET/" 1 retinanet -tag_in image -tag_out boxes scores labels
+
+	# Check model metadata ('serving_default' signature) - FIB%5CI6_FSGB_VE_R1
+	> saved_model_cli show --dir "./DARS_ADC/TFS/FIB_I6_FSGB_VE_RETINANET/1/" --tag_set serve --signature_def serving_default
+
+
+	# With custom tags - WP2_CM_FIB_shortsem_R1 (3J_FSGB_VE)
+	> python ./convert_hdf_to_tfs_model.py "./ModelsFromWlos07/checkpoints/FSGB_VE^MEAS_FIB/WP2_CM_FIB_shortsem_R1.hdf5" "./DARS_ADC/TFS/FIB_3J_FSGB_VE_SHORTSEM/" 4 shortsem -tag_in image -tag_out shortsem_score
+
+	# Check model metadata ('serving_default' signature) - WP2_CM_FIB_shortsem_R1 (3J_FSGB_VE)
+	> saved_model_cli show --dir "./DARS_ADC/TFS/FIB_3J_FSGB_VE_SHORTSEM/4/" --tag_set serve --signature_def serving_default
+
+
+	# With custom tags - WP2_CM_FIB_shortsem_R1 (I6_FSGB_VE)
+	> python ./convert_hdf_to_tfs_model.py ".ModelsFromWlos07/checkpoints/FSGB_VE^MEAS_FIB/WP2_CM_FIB_shortsem_R1.hdf5" "./DARS_ADC/TFS/FIB_I6_FSGB_VE_SHORTSEM/" 1 shortsem -tag_in image -tag_out shortsem_score
+
+	# Check model metadata ('serving_default' signature) - WP2_CM_FIB_shortsem_R1 (I6_FSGB_VE)
+	> saved_model_cli show --dir "./DARS_ADC/TFS/FIB_I6_FSGB_VE_SHORTSEM/1/" --tag_set serve --signature_def serving_default
+
+
+	# With custom tags - SEM%5C3J_TBVL_CM_R1
+	> python ./convert_hdf_to_tfs_model.py "./ModelsFromWlos07/checkpoints/TBVL_CM^MEAS_CD_SEM/SEM%5C3J_TBVL_CM_R1.h5" "./DARS_ADC/TFS/SEM_3J_TBVL_CM_RETINANET/" 1 retinanet -tag_in image -tag_out boxes scores labels
+
+	# Check model metadata ('serving_default' signature) - SEM%5C3J_TBVL_CM_R1
+	> saved_model_cli show --dir "./DARS_ADC/TFS/SEM_3J_TBVL_CM_RETINANET/1/" --tag_set serve --signature_def serving_default
+	
+	
+	# No retagging of model input and output tensor names - FIB%5C3J_FSGB_VE_Anomaly_R4
+	> python ./convert_hdf_to_tfs_model.py "./ModelsFromWlos07/checkpoints/FSGB_VE^MEAS_FIB/FIB%5C3J_FSGB_VE_Anomaly_R4.h5" "./DARS_ADC/TFS/FIB_3J_FSGB_VE_AE/" 4 anomaly -build_params="{\"width\": 1024, \"height\": 512, \"depth\": 1, \"filters\": (16,32,64,128,256), \"latentdim\": 16}"
+	
+	# Check model metadata ('serving_default' signature) - FIB%5C3J_FSGB_VE_Anomaly_R4
+	> saved_model_cli show --dir "./DARS_ADC/TFS/FIB_3J_FSGB_VE_AE/4/" --tag_set serve --signature_def serving_default
+
+
+# Specifically for MIQ checkpoint files
+> python ./convert_miq_ckpt_to_tfs_model.py -h
+
+	# With custom tags - model.ckpt-50000 (3J_BVL_VE)
+	> python ./convert_miq_ckpt_to_tfs_model.py "./ModelsFromWlos07/checkpoints/BVL_VE^MEAS3_CD_SEM/model.ckpt-50000" "./DARS_ADC/TFS/SEM_3J_BVL_VE_MIQ/" 1 -tag_in image -tag_out blurScore
+
+	# Check model metadata ('serving_default' signature) - model.ckpt-50000 (3J_BVL_VE)
+	> saved_model_cli show --dir "./DARS_ADC/TFS/SEM_3J_BVL_VE_MIQ/1/" --tag_set serve --signature_def serving_default
+
+
+	# With custom tags - model.ckpt-1000042 (3J_FSGB_VE)
+	> python ./convert_miq_ckpt_to_tfs_model.py "./ModelsFromWlos07/checkpoints/FSGB_VE^MEAS_FIB/model.ckpt-1000042" "./DARS_ADC/TFS/FIB_3J_FSGB_VE_MIQ/" 4 -tag_in image -tag_out blurScore
+
+	# Check model metadata ('serving_default' signature) - model.ckpt-1000042 (3J_FSGB_VE)
+	> saved_model_cli show --dir "./DARS_ADC/TFS/FIB_3J_FSGB_VE_MIQ/4/" --tag_set serve --signature_def serving_default
+
+
+	# With custom tags - model.ckpt-1000042 (I6_FSGB_VE)
+	> python ./convert_miq_ckpt_to_tfs_model.py "./ModelsFromWlos07/checkpoints/FSGB_VE^MEAS_FIB/model.ckpt-1000042" "./DARS_ADC/TFS/FIB_I6_FSGB_VE_MIQ/" 1 -tag_in image -tag_out blurScore
+
+	# Check model metadata ('serving_default' signature) - model.ckpt-1000042 (I6_FSGB_VE)
+	> saved_model_cli show --dir "./DARS_ADC/TFS/FIB_I6_FSGB_VE_MIQ/1/" --tag_set serve --signature_def serving_default

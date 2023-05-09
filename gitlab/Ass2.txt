@@ -1,0 +1,19 @@
+If your job is failing with the error "curl: (7) Failed to connect to localhost port 9000: Connection refused", based on the error, what do you think is the problem?
+
+Most students think that this a a connection or port issue. The actual problem is another one, as you will see later.
+
+Read the logs and try to understand the output of each command from the. Is there a command that did not generate any log entries? Which one is it?
+
+The gatsby serve command did not generate any log entries during the job execution.
+
+Compare your logs with the previous job execution. Do you notice any differences in the console log after running the command gatsby serve? What is different?
+
+In the previous job, you should notice that the gatsby serve command generated this log entry.
+
+info gatsby serve running at: http://localhost:9000/.
+
+At this point maybe you understood that debugging in this case is not about what you see in the logs, but what is missing. Most notably you should notice that there is no message like: info gatsby serve running at: http://localhost:9000/. This means the server did not manage to start before the job ended. What can you do about this?
+
+Since the command did not inform us that the server has started, it means that it did not start yet. As there is no server running, the curl command will fail.
+
+The solution to this is to allow the server more time to start by increasing the sleep time.
